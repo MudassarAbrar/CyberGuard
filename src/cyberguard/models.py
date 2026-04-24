@@ -55,6 +55,41 @@ class Finding(BaseModel):
     fix_suggestion: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
 
+    # Multi-engine consensus fields
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    consensus_engines: List[str] = Field(default_factory=list)
+
+    # Threat intelligence fields
+    cvss_score: Optional[float] = None
+    cvss_vector: Optional[str] = None
+    cve_ids: List[str] = Field(default_factory=list)
+    attack_techniques: List[str] = Field(default_factory=list)
+
+    # Predictive fields (30/60/90-day exploitation probability)
+    exploitation_probability_30d: Optional[float] = None
+    exploitation_probability_60d: Optional[float] = None
+    exploitation_probability_90d: Optional[float] = None
+
+
+class DependencyFinding(Finding):
+    """A finding related to a vulnerable third-party dependency."""
+
+    package_name: str = ""
+    installed_version: str = ""
+    fixed_version: Optional[str] = None
+    ecosystem: str = ""
+
+
+class AttackChain(BaseModel):
+    """A sequence of findings that together form an exploitation chain."""
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    finding_ids: List[str] = Field(default_factory=list)
+    severity: Severity = Severity.HIGH
+    mitre_techniques: List[str] = Field(default_factory=list)
+
 
 class ScanResult(BaseModel):
     """Aggregated result of a CyberGuard scan run."""
@@ -62,6 +97,7 @@ class ScanResult(BaseModel):
     scan_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     target_path: str
     findings: List[Finding] = Field(default_factory=list)
+    attack_chains: List[AttackChain] = Field(default_factory=list)
     engines_used: List[str] = Field(default_factory=list)
     scanned_files: int = 0
     scan_duration_ms: float = 0.0
