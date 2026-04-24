@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cyberguard"
+version = "0.1.0"
+description = "AI-powered cybersecurity code scanner for Python and JavaScript projects"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+keywords = ["security", "scanner", "cybersecurity", "SAST", "AI", "code-analysis"]
+authors = [{ name = "CyberGuard Contributors" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+  "typer>=0.9.0",
+  "rich>=13.0.0",
+  "bandit>=1.7.5",
+  "pydantic>=2.0.0",
+  "groq>=0.4.0",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-cov>=4.1.0",
+  "ruff>=0.1.0",
+]
+
+[project.scripts]
+cyberguard = "cyberguard.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/MudassarAbrar/CyberGuard"
+Repository = "https://github.com/MudassarAbrar/CyberGuard"
+Issues = "https://github.com/MudassarAbrar/CyberGuard/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cyberguard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["cyberguard"]
