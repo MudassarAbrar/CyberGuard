@@ -11,6 +11,7 @@ from rich.console import Console
 from .engines.ai_engine import AIEngine
 from .engines.bandit_engine import BanditEngine
 from .engines.base import BaseEngine
+from .engines.dependency_engine import DependencyEngine
 from .engines.pattern_engine import PatternEngine
 from .models import Finding, ScanResult
 
@@ -57,10 +58,12 @@ class Scanner:
     use_bandit:
         Enable the Bandit engine (Python static analysis).
     use_pattern:
-        Enable the regex pattern engine (Python + JavaScript).
+        Enable the regex pattern engine (Python + JavaScript + Java + Go).
     use_ai:
         Enable the AI semantic analysis engine.  The engine is silently
         skipped when no API key is configured.
+    use_deps:
+        Enable the Dependency engine (lock-file scanning via OSV API).
     """
 
     def __init__(
@@ -68,6 +71,7 @@ class Scanner:
         use_bandit: bool = True,
         use_pattern: bool = True,
         use_ai: bool = True,
+        use_deps: bool = True,
     ) -> None:
         engines: List[BaseEngine] = []
 
@@ -86,6 +90,9 @@ class Scanner:
                     "[yellow]⚠  AI engine disabled: set GROQ_API_KEY or "
                     "OPENAI_API_KEY to enable semantic analysis.[/yellow]"
                 )
+
+        if use_deps:
+            engines.append(DependencyEngine())
 
         self.engines = engines
 
@@ -142,10 +149,12 @@ def create_scanner(
     no_bandit: bool = False,
     no_pattern: bool = False,
     no_ai: bool = False,
+    no_deps: bool = False,
 ) -> Scanner:
     """Convenience factory used by the CLI."""
     return Scanner(
         use_bandit=not no_bandit,
         use_pattern=not no_pattern,
         use_ai=not no_ai,
+        use_deps=not no_deps,
     )

@@ -52,6 +52,8 @@ class Finding(BaseModel):
     engine: str
     cwe: Optional[str] = None
     owasp: Optional[str] = None
+    cvss_score: Optional[float] = None
+    cvss_vector: Optional[str] = None
     fix_suggestion: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
 

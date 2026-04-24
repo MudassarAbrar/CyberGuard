@@ -10,12 +10,15 @@ from cyberguard.cli import app
 
 runner = CliRunner()
 
+# Flags used in every scan invocation to keep tests fast and network-free.
+_NO_SLOW = ["--no-ai", "--no-deps"]
+
 
 class TestScanCommand:
     def test_scan_json_output(self, fixtures_dir):
         result = runner.invoke(
             app,
-            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none", "--no-ai"],
+            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none"] + _NO_SLOW,
         )
         assert result.exit_code == 0, result.output
         data = json.loads(result.stdout)
@@ -25,7 +28,7 @@ class TestScanCommand:
     def test_scan_sarif_output(self, fixtures_dir):
         result = runner.invoke(
             app,
-            ["scan", str(fixtures_dir), "--format", "sarif", "--fail-on", "none", "--no-ai"],
+            ["scan", str(fixtures_dir), "--format", "sarif", "--fail-on", "none"] + _NO_SLOW,
         )
         assert result.exit_code == 0, result.output
         data = json.loads(result.stdout)
@@ -34,7 +37,7 @@ class TestScanCommand:
     def test_scan_finds_vulnerabilities_in_fixture(self, fixtures_dir):
         result = runner.invoke(
             app,
-            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none", "--no-ai"],
+            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none"] + _NO_SLOW,
         )
         assert result.exit_code == 0, result.output
         data = json.loads(result.stdout)
@@ -43,7 +46,7 @@ class TestScanCommand:
     def test_fail_on_high_exits_1_when_high_findings(self, fixtures_dir):
         result = runner.invoke(
             app,
-            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "high", "--no-ai"],
+            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "high"] + _NO_SLOW,
         )
         # The vulnerable fixtures contain HIGH findings → should exit 1
         assert result.exit_code == 1
@@ -51,7 +54,7 @@ class TestScanCommand:
     def test_fail_on_none_always_exits_0(self, fixtures_dir):
         result = runner.invoke(
             app,
-            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none", "--no-ai"],
+            ["scan", str(fixtures_dir), "--format", "json", "--fail-on", "none"] + _NO_SLOW,
         )
         assert result.exit_code == 0
 
@@ -60,7 +63,7 @@ class TestScanCommand:
         safe.write_text("def add(a, b):\n    return a + b\n")
         result = runner.invoke(
             app,
-            ["scan", str(safe), "--format", "json", "--fail-on", "critical", "--no-ai"],
+            ["scan", str(safe), "--format", "json", "--fail-on", "critical"] + _NO_SLOW,
         )
         assert result.exit_code == 0
 
@@ -77,8 +80,8 @@ class TestScanCommand:
                 str(out),
                 "--fail-on",
                 "none",
-                "--no-ai",
-            ],
+            ]
+            + _NO_SLOW,
         )
         assert result.exit_code == 0
         assert out.exists()
@@ -121,9 +124,9 @@ class TestScanCommand:
                 "json",
                 "--fail-on",
                 "none",
-                "--no-ai",
                 "--no-pattern",
-            ],
+            ]
+            + _NO_SLOW,
         )
         assert result.exit_code == 0
         data = json.loads(result.stdout)
@@ -141,9 +144,9 @@ class TestScanCommand:
                 "json",
                 "--fail-on",
                 "none",
-                "--no-ai",
                 "--quiet",
-            ],
+            ]
+            + _NO_SLOW,
         )
         assert result.exit_code == 0
         # In quiet mode the output should still be valid JSON on stdout
@@ -153,7 +156,7 @@ class TestScanCommand:
     def test_scan_single_python_file(self, vulnerable_py):
         result = runner.invoke(
             app,
-            ["scan", str(vulnerable_py), "--format", "json", "--fail-on", "none", "--no-ai"],
+            ["scan", str(vulnerable_py), "--format", "json", "--fail-on", "none"] + _NO_SLOW,
         )
         assert result.exit_code == 0
         data = json.loads(result.stdout)
@@ -169,10 +172,30 @@ class TestScanCommand:
                 "json",
                 "--fail-on",
                 "none",
-                "--no-ai",
                 "--no-bandit",
-            ],
+            ]
+            + _NO_SLOW,
         )
         assert result.exit_code == 0
         data = json.loads(result.stdout)
         assert len(data["findings"]) > 0
+
+    def test_no_deps_flag_accepted(self, fixtures_dir):
+        result = runner.invoke(
+            app,
+            [
+                "scan",
+                str(fixtures_dir),
+                "--format",
+                "json",
+                "--fail-on",
+                "none",
+                "--no-deps",
+            ]
+            + _NO_SLOW,
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        # Dependency engine disabled → no DEP-* findings
+        rule_ids = [f["rule_id"] for f in data["findings"]]
+        assert not any(r.startswith("DEP-") for r in rule_ids)

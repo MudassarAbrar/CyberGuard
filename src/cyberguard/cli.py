@@ -98,6 +98,11 @@ def scan(
         "--no-pattern",
         help="Disable the regex pattern-matching engine.",
     ),
+    no_deps: bool = typer.Option(
+        False,
+        "--no-deps",
+        help="Disable the dependency scanning engine (lock-file CVE lookup).",
+    ),
     quiet: bool = typer.Option(
         False,
         "--quiet",
@@ -138,6 +143,7 @@ def scan(
         no_bandit=no_bandit,
         no_pattern=no_pattern,
         no_ai=no_ai,
+        no_deps=no_deps,
     )
 
     try:

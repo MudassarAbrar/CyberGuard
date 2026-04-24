@@ -1,14 +1,16 @@
 # 🛡 CyberGuard
 
-> **AI-powered cybersecurity code scanner for Python and JavaScript projects.**
+> **AI-powered cybersecurity code scanner for Python, JavaScript, Java, and Go projects.**
 
 [![CI](https://github.com/MudassarAbrar/CyberGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/MudassarAbrar/CyberGuard/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-CyberGuard combines **static analysis (Bandit)**, a **regex pattern library** covering OWASP
-Top 10 vulnerabilities, and an **AI semantic engine** (powered by the free-tier Groq API) into
-a single, cloud-friendly CLI tool that produces **JSON** and **SARIF** output.
+CyberGuard combines **static analysis (Bandit)**, a **50-pattern regex library** covering OWASP
+Top 10 vulnerabilities across four languages, an **AI semantic engine** (powered by the free-tier
+Groq API), and a **dependency scanning engine** that checks your lock files against the
+[OSV vulnerability database](https://osv.dev/) — all in a single, cloud-friendly CLI that
+produces **JSON** and **SARIF** output.
 
 ---
 
@@ -18,8 +20,11 @@ a single, cloud-friendly CLI tool that produces **JSON** and **SARIF** output.
 |---|---|
 | 🐍 Python scanning | Bandit AST analysis + 10 regex patterns |
 | 🌐 JavaScript / TypeScript | 10 regex patterns covering XSS, injection, hardcoded secrets, and more |
+| ☕ Java | 10 regex patterns: SQL injection, deserialization, XXE, weak crypto, and more |
+| 🐹 Go | 10 regex patterns: command injection, TLS bypass, weak crypto, unsafe, and more |
 | 🤖 AI semantic analysis | Groq (`llama3-8b-8192`) or any OpenAI-compatible API — **free tier friendly** |
-| 📄 JSON output | Machine-readable, pipe-friendly |
+| 📦 Dependency scanning | Scans requirements.txt, package-lock.json, yarn.lock, Pipfile.lock, poetry.lock, go.sum against the OSV CVE database |
+| 📄 JSON output | Machine-readable, pipe-friendly — includes `cvss_score` and `cvss_vector` |
 | 🔬 SARIF output | Compatible with GitHub Security tab and IDE integrations |
 | ⚡ CI-ready | Single `pip install`, no local LLM required |
 | 🚦 Severity gating | `--fail-on high` exits non-zero to break the build |
@@ -92,6 +97,7 @@ Options:
       --no-ai              Disable the AI semantic analysis engine.
       --no-bandit          Disable the Bandit engine (Python only).
       --no-pattern         Disable the regex pattern-matching engine.
+      --no-deps            Disable the dependency scanning engine (lock-file CVE lookup).
   -q, --quiet              Suppress informational console output.
   -V, --version            Print version and exit.
   --help                   Show this message and exit.
@@ -254,9 +260,10 @@ See [docs/architecture.md](docs/architecture.md) for a full technical overview.
 ```
 cyberguard scan <path>
     │
-    ├─► Bandit Engine     (Python AST analysis via bandit)
-    ├─► Pattern Engine    (Regex patterns, Python + JS)
-    └─► AI Engine         (LLM semantic analysis, Groq/OpenAI)
+    ├─► Bandit Engine       (Python AST analysis via bandit)
+    ├─► Pattern Engine      (Regex patterns: Python + JS + Java + Go)
+    ├─► AI Engine           (LLM semantic analysis, Groq/OpenAI)
+    └─► Dependency Engine   (lock-file CVE lookup via OSV API)
               │
               ▼
          ScanResult  (deduplicated findings)
@@ -299,6 +306,45 @@ cyberguard scan <path>
 | CG-JS008 | Insecure Random Number Generation | CWE-338 |
 | CG-JS009 | Prototype Pollution Risk | CWE-1321 |
 | CG-JS010 | Dynamic require() Path | CWE-706 |
+
+### Java patterns (CG-JA*)
+
+| Rule | Title | CWE |
+|------|-------|-----|
+| CG-JA001 | SQL Injection via String Concatenation | CWE-89 |
+| CG-JA002 | Hardcoded Credential | CWE-259 |
+| CG-JA003 | OS Command Injection Risk | CWE-78 |
+| CG-JA004 | Insecure Deserialization (ObjectInputStream) | CWE-502 |
+| CG-JA005 | Weak Cryptographic Hash (MD5 / SHA-1) | CWE-327 |
+| CG-JA006 | XML External Entity (XXE) Risk | CWE-611 |
+| CG-JA007 | Insecure Random Number Generation (java.util.Random) | CWE-338 |
+| CG-JA008 | Potential Path Traversal | CWE-22 |
+| CG-JA009 | printStackTrace() Leaks Stack Trace | CWE-209 |
+| CG-JA010 | Disabled SSL/TLS Certificate Validation | CWE-295 |
+
+### Go patterns (CG-GO*)
+
+| Rule | Title | CWE |
+|------|-------|-----|
+| CG-GO001 | SQL Injection via String Formatting | CWE-89 |
+| CG-GO002 | Hardcoded Credential | CWE-259 |
+| CG-GO003 | OS Command Injection Risk | CWE-78 |
+| CG-GO004 | Weak Cryptographic Hash (MD5 / SHA-1) | CWE-327 |
+| CG-GO005 | Insecure Random Number Generation (math/rand) | CWE-338 |
+| CG-GO006 | Potential Path Traversal | CWE-22 |
+| CG-GO007 | TLS Certificate Verification Disabled | CWE-295 |
+| CG-GO008 | HTTP Server Without Timeouts | CWE-400 |
+| CG-GO009 | Unsafe Pointer Usage | CWE-119 |
+| CG-GO010 | Hardcoded HTTP (Non-HTTPS) URL | CWE-319 |
+
+### Dependency scanning (DEP-*)
+
+The dependency engine generates findings with rule IDs of the form `DEP-<OSV-ID>` (e.g.
+`DEP-PYSEC-2019-132`, `DEP-GHSA-xxxx-xxxx-xxxx`).  Each finding includes:
+
+* **CVE alias(es)** in the tags and description.
+* **CVSS score / vector** when available from the OSV database.
+* **Fix suggestion** with the first available patched version.
 
 ---
 

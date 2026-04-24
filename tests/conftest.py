@@ -25,6 +25,21 @@ def vulnerable_js(fixtures_dir: Path) -> Path:
 
 
 @pytest.fixture
+def vulnerable_java(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "vulnerable.java"
+
+
+@pytest.fixture
+def vulnerable_go(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "vulnerable.go"
+
+
+@pytest.fixture
+def requirements_txt(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "requirements.txt"
+
+
+@pytest.fixture
 def sample_finding() -> Finding:
     return Finding(
         rule_id="TEST-001",

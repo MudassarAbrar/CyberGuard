@@ -1,0 +1,11 @@
+# This file intentionally lists vulnerable packages for testing purposes.
+# DO NOT use these versions in production.
+
+# Known vulnerable: CVE-2019-11324 (urllib3 < 1.24.2 - CRLF injection)
+urllib3==1.24.1
+
+# Known vulnerable: CVE-2021-33503 (urllib3 < 1.26.5)
+requests==2.25.0
+
+# A safe modern version included to verify it produces no false positives.
+certifi==2023.7.22
