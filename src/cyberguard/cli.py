@@ -63,7 +63,7 @@ def scan(
         exists=True,
         help="File or directory to scan.",
     ),
-    format: str = typer.Option(
+    output_format: str = typer.Option(
         "json",
         "--format",
         "-f",
@@ -108,7 +108,7 @@ def scan(
     """Scan a file or directory for security vulnerabilities."""
 
     # ── Validate --format ────────────────────────────────────────────────────
-    fmt = format.lower()
+    fmt = output_format.lower()
     if fmt not in ("json", "sarif"):
         err_console.print("[red]Error: --format must be 'json' or 'sarif'.[/red]")
         raise typer.Exit(code=2)

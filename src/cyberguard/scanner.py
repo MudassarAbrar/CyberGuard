@@ -121,7 +121,7 @@ class Scanner:
         elapsed_ms = time.monotonic() * 1000 - start_ms
 
         # Deduplicate by (rule_id, file_path, line_start) across engines.
-        seen: set = set()
+        seen: set[tuple[str, str, int]] = set()
         unique: List[Finding] = []
         for finding in all_findings:
             key = (finding.rule_id, finding.location.file_path, finding.location.line_start)
