@@ -139,6 +139,7 @@ def scan(
         no_pattern=no_pattern,
         no_ai=no_ai,
     )
+    scanner._quiet = quiet
 
     try:
         result = scanner.scan(str(path))

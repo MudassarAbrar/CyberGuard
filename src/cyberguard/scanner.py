@@ -82,10 +82,11 @@ class Scanner:
             if ai_engine.is_available:
                 engines.append(ai_engine)
             else:
-                _console.print(
-                    "[yellow]⚠  AI engine disabled: set GROQ_API_KEY or "
-                    "OPENAI_API_KEY to enable semantic analysis.[/yellow]"
-                )
+                if not getattr(self, '_quiet', False):
+                    _console.print(
+                        "[yellow]⚠  AI engine disabled: set GROQ_API_KEY or "
+                        "OPENAI_API_KEY to enable semantic analysis.[/yellow]"
+                    )
 
         self.engines = engines
 
@@ -109,14 +110,16 @@ class Scanner:
         all_findings: List[Finding] = []
 
         for engine in self.engines:
-            _console.print(f"[dim]  → Running [bold]{engine.name}[/bold] engine…[/dim]")
+            if not getattr(self, '_quiet', False):
+                _console.print(f"[dim]  → Running [bold]{engine.name}[/bold] engine…[/dim]")
             try:
                 engine_findings = engine.scan_path(path)
                 all_findings.extend(engine_findings)
             except Exception as exc:  # noqa: BLE001
-                _console.print(
-                    f"[red]  ✗ Engine [bold]{engine.name}[/bold] failed: {exc}[/red]"
-                )
+                if not getattr(self, '_quiet', False):
+                    _console.print(
+                        f"[red]  ✗ Engine [bold]{engine.name}[/bold] failed: {exc}[/red]"
+                    )
 
         elapsed_ms = time.monotonic() * 1000 - start_ms
 
