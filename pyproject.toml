@@ -49,7 +49,7 @@ Repository = "https://github.com/MudassarAbrar/CyberGuard"
 Issues = "https://github.com/MudassarAbrar/CyberGuard/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cyberguard"]
+packages = ["src/cyberguard", "cli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
